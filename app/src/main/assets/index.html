@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0c0d0f">
+<title>Atomberg Remote</title>
+<style>
+:root{
+  --bg1:#1d1f23; --bg2:#0a0b0d; --ink:#e8eaed; --dim:#9ea3aa;
+  --face1:#26282c; --face2:#111214; --ring:rgba(255,255,255,.09);
+  box-sizing:border-box; height:100%;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:light){
+  :root:not([data-theme="dark"]){--bg1:#f4f5f7;--bg2:#d5d9df;--ink:#1a1c1f;--dim:#5b6068}
+}
+:root[data-theme="light"]{--bg1:#f4f5f7;--bg2:#d5d9df;--ink:#1a1c1f;--dim:#5b6068}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+body{
+  margin:0;height:100%;overflow:hidden;overscroll-behavior:none;
+  background:radial-gradient(120% 80% at 50% 30%,var(--bg1),var(--bg2));
+  font-family:"Helvetica Neue",Roboto,Arial,sans-serif;color:var(--ink);
+}
+button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:pointer;outline:none}
+button:focus-visible{outline:2px solid #8ab4ff;outline-offset:3px}
+
+.stage{
+  --d:min(88vw,46dvh);
+  height:100%;display:flex;flex-direction:column;align-items:center;justify-content:space-evenly;
+  padding:2dvh 6vw;
+}
+.top{display:flex;flex-direction:column;align-items:center;gap:2.2dvh}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--dim);opacity:.7;transition:.12s}
+.dot.blink{background:#fff;opacity:1;box-shadow:0 0 14px 4px rgba(255,255,255,.85)}
+
+.power{
+  --p:min(23vw,10.5dvh);width:var(--p);height:var(--p);border-radius:50%;
+  background:radial-gradient(circle at 35% 28%,#ff6b6b,#e0262d 55%,#b5161c);
+  box-shadow:0 8px 20px rgba(0,0,0,.45), inset 0 2px 5px rgba(255,255,255,.45), inset 0 -4px 8px rgba(0,0,0,.25);
+  display:grid;place-items:center;transition:transform .08s,box-shadow .2s,filter .2s;
+  filter:saturate(.8) brightness(.85);
+}
+.power.on{filter:none;box-shadow:0 8px 20px rgba(0,0,0,.45),0 0 34px 6px rgba(255,60,60,.5), inset 0 2px 5px rgba(255,255,255,.45)}
+.power svg{width:44%;height:44%;stroke:#fff;fill:none;stroke-width:2.2;stroke-linecap:round}
+.power:active,.round:active{transform:scale(.93)}
+
+.dial{
+  position:relative;width:var(--d);height:var(--d);border-radius:50%;
+  background:radial-gradient(circle at 50% 30%,var(--face1),var(--face2) 72%);
+  box-shadow:inset 0 2px 5px rgba(255,255,255,.1), inset 0 -8px 22px rgba(0,0,0,.7), 0 18px 40px rgba(0,0,0,.45);
+}
+.n{
+  position:absolute;left:50%;top:50%;
+  width:calc(var(--d)*.2);height:calc(var(--d)*.2);margin:calc(var(--d)*-.1);border-radius:50%;
+  display:grid;place-items:center;font-size:calc(var(--d)*.095);font-weight:300;color:#b9bdc3;
+  transform:rotate(var(--a)) translateY(calc(var(--d)*-.355)) rotate(calc(var(--a)*-1));
+  transition:color .15s,background .15s,box-shadow .15s;
+}
+.n:active{background:rgba(255,255,255,.08)}
+.n.on{
+  color:#fff;font-weight:400;text-shadow:0 0 12px rgba(255,255,255,.9);
+  background:radial-gradient(circle,rgba(255,255,255,.14),rgba(255,255,255,.03) 70%);
+  box-shadow:0 0 0 1.5px rgba(255,255,255,.55),0 0 22px rgba(255,255,255,.25);
+}
+.hub{
+  position:absolute;left:50%;top:50%;width:calc(var(--d)*.34);height:calc(var(--d)*.34);margin:calc(var(--d)*-.17);border-radius:50%;
+  background:radial-gradient(circle at 50% 30%,#1c1d20,#0f1011);
+  box-shadow:inset 0 3px 8px rgba(0,0,0,.8),0 1px 0 rgba(255,255,255,.1);
+  display:grid;place-items:center;font-size:calc(var(--d)*.1);font-weight:300;color:#b9bdc3;transition:.15s;
+}
+.hub.on{color:#fff;text-shadow:0 0 12px rgba(255,255,255,.9);box-shadow:inset 0 3px 8px rgba(0,0,0,.8),0 0 0 1.5px rgba(255,255,255,.55),0 0 22px rgba(255,255,255,.22)}
+
+.row{width:100%;max-width:440px;display:flex;justify-content:space-around}
+.cell{display:flex;flex-direction:column;align-items:center;gap:1.4dvh}
+.round{
+  --r:min(18vw,8.6dvh);width:var(--r);height:var(--r);border-radius:50%;
+  background:radial-gradient(circle at 50% 30%,var(--face1),var(--face2));
+  box-shadow:0 6px 14px rgba(0,0,0,.5), inset 0 2px 3px rgba(255,255,255,.14);
+  display:grid;place-items:center;transition:transform .08s,box-shadow .15s;
+}
+.round svg{width:46%;height:46%;stroke:#c9cdd2;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;transition:.15s}
+.round.on{box-shadow:0 6px 14px rgba(0,0,0,.5), inset 0 2px 3px rgba(255,255,255,.14),0 0 0 1.5px rgba(255,255,255,.5),0 0 20px rgba(255,255,255,.2)}
+.round.on svg{stroke:#fff;filter:drop-shadow(0 0 6px rgba(255,255,255,.95))}
+.lbl{font-size:clamp(11px,1.9dvh,15px);font-weight:700;letter-spacing:.04em;color:var(--ink)}
+.tw{--r:min(18vw,8.6dvh);position:relative;display:grid;place-items:center}
+.pip{
+  position:absolute;left:50%;top:50%;width:7px;height:7px;margin:-3.5px;border-radius:50%;
+  background:var(--dim);opacity:.35;
+  transform:rotate(var(--a)) translateY(calc(var(--r)*-.5 - 14px)) rotate(calc(var(--a)*-1));
+  transition:opacity .15s,background .15s,box-shadow .15s;
+}
+.pip.on{opacity:1;background:var(--ink);box-shadow:0 0 8px 2px color-mix(in srgb,var(--ink) 70%,transparent)}
+</style>
+</head>
+<body>
+<main class="stage" aria-label="Atomberg fan remote">
+  <div class="top">
+    <div class="dot" id="dot"></div>
+    <button class="power" id="power" aria-label="Power" aria-pressed="false">
+      <svg viewBox="0 0 24 24"><path d="M12 3v8"/><path d="M6.8 6.6a8 8 0 1 0 10.4 0"/></svg>
+    </button>
+  </div>
+
+  <div class="dial">
+    <button class="n" data-s="1" style="--a:0deg" aria-label="Speed 1">1</button>
+    <button class="n" data-s="2" style="--a:72deg" aria-label="Speed 2">2</button>
+    <button class="n" data-s="3" style="--a:144deg" aria-label="Speed 3">3</button>
+    <button class="n" data-s="4" style="--a:216deg" aria-label="Speed 4">4</button>
+    <button class="n" data-s="5" style="--a:288deg" aria-label="Speed 5">5</button>
+    <button class="hub" id="boost" aria-label="Boost" aria-pressed="false">B</button>
+  </div>
+
+  <div class="row">
+    <div class="cell">
+      <div class="tw"><i class="pip" style="--a:-60deg"></i><i class="pip" style="--a:-20deg"></i><i class="pip" style="--a:20deg"></i><i class="pip" style="--a:60deg"></i><button class="round" id="timer" aria-label="Timer">
+        <svg viewBox="0 0 24 24"><path d="M4.5 9.5A8.5 8.5 0 1 1 4 13"/><path d="M12 7.5V12l3 2"/><path d="M4.5 4.5v5h5"/></svg>
+      </button></div><span class="lbl">TIMER</span>
+    </div>
+    <div class="cell">
+      <button class="round" id="led" aria-label="LED">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.6"/><path d="M12 2.5v2.4M12 19.1v2.4M2.5 12h2.4M19.1 12h2.4M5.3 5.3l1.7 1.7M17 17l1.7 1.7M5.3 18.7L7 17M17 7l1.7-1.7"/></svg>
+      </button><span class="lbl">LED</span>
+    </div>
+    <div class="cell">
+      <button class="round" id="sleep" aria-label="Sleep">
+        <svg viewBox="0 0 24 24" style="fill:currentColor"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg>
+      </button><span class="lbl">SLEEP</span>
+    </div>
+  </div>
+</main>
+
+<script>
+const s={on:false,speed:0,boost:false,timer:0,led:false,sleep:false};
+const T=[0,1,2,3,4];
+const $=id=>document.getElementById(id);
+const nums=[...document.querySelectorAll('.n')];
+function render(){
+  $('power').classList.toggle('on',s.on);
+  $('power').setAttribute('aria-pressed',s.on);
+  nums.forEach(n=>n.classList.toggle('on',s.on&&!s.boost&&+n.dataset.s===s.speed));
+  $('boost').classList.toggle('on',s.on&&s.boost);
+  $('boost').setAttribute('aria-pressed',s.on&&s.boost);
+  $('timer').classList.toggle('on',s.on&&s.timer>0);
+  $('led').classList.toggle('on',s.on&&s.led);
+  $('sleep').classList.toggle('on',s.on&&s.sleep);
+  document.querySelectorAll('.pip').forEach((p,i)=>p.classList.toggle('on',s.on&&T.indexOf(s.timer)>i));
+}
+function blink(){
+  const d=$('dot');d.classList.add('blink');
+  try{navigator.vibrate&&navigator.vibrate(12)}catch(e){}
+  setTimeout(()=>d.classList.remove('blink'),130);
+}
+function ir(k){try{window.AndroidIR&&AndroidIR.send(k)}catch(e){}}
+function wake(){if(!s.on){s.on=true;if(!s.speed)s.speed=3;}}
+$('power').onclick=()=>{
+  s.on=!s.on;ir('power');
+  if(s.on&&!s.speed)s.speed=3;
+  if(!s.on){s.boost=false;s.timer=0;s.sleep=false;}
+  blink();render();
+};
+nums.forEach(n=>n.onclick=()=>{wake();s.speed=+n.dataset.s;ir('s'+n.dataset.s);s.boost=false;s.sleep=false;blink();render();});
+$('boost').onclick=()=>{wake();s.boost=!s.boost;ir('boost');if(s.boost)s.sleep=false;blink();render();};
+$('timer').onclick=()=>{if(!s.on)return blink();s.timer=T[(T.indexOf(s.timer)+1)%T.length];ir('timer');blink();render();};
+$('led').onclick=()=>{if(!s.on)return blink();s.led=!s.led;ir('led');blink();render();};
+$('sleep').onclick=()=>{if(!s.on)return blink();s.sleep=!s.sleep;ir('sleep');if(s.sleep)s.boost=false;blink();render();};
+render();
+</script>
+</body>
+</html>
