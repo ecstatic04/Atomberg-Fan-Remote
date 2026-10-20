@@ -4,8 +4,8 @@
     <uses-feature android:name="android.hardware.consumerir" android:required="false" />
     <application
         android:allowBackup="false"
-        android:icon="@drawable/ic_launcher"
-        android:label="Atomberg Remote"
+        android:icon="@drawable/my_icon"
+        android:label="Atomberg Fan Remote"
         android:theme="@style/AppTheme">
         <activity
             android:name=".MainActivity"
